@@ -403,6 +403,13 @@ def extractData(args):
 		for game in additionalDLCs.keys():
 			dlcs.update(additionalDLCs[game])
 
+		# Index results by release key so DLC lookups below are O(1) instead of scanning
+		# the full result set for every DLC of every game
+		resultByReleaseKey = {}
+		for ids, result in results:
+			for releaseKey in ids:
+				resultByReleaseKey[releaseKey] = result
+
 		# There are spurious random dlcNUMBERa entries in the library, plus a few DLCs which appear
 		# multiple times in different ways and are not attached to a game
 		titleExclusion = re.compile(r'^(?:'
@@ -507,13 +514,9 @@ def extractData(args):
 										dlcList.extend(options["TreatReleaseAsDLC"][key])
 								
 							for dlc in dlcList:
-								try:
-									# Check the availability of the DLC in the games list (uncertain)
-									d = next(x[1] for x in results if dlc in x[0])
-									if d:
-										row['dlcs'].add(jld('title', True, d))
-								except StopIteration:
-									pass
+								d = resultByReleaseKey.get(dlc)
+								if d:
+									row['dlcs'].add(jld('title', True, d))
 
 						# Tags
 						if args.tags:
