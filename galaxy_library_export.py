@@ -79,7 +79,7 @@ def extractData(args):
 		try:
 			with open('settings.json', 'r', encoding='utf-8') as f:
 				o = json.load(f)
-		except:
+		except (FileNotFoundError, json.JSONDecodeError):
 			o = {}
 		
 		# Initialise defaults
@@ -155,8 +155,8 @@ def extractData(args):
 					row[columnName] = jld(fieldName, True)
 				elif Type.LIST is fieldType:
 					s = object[fieldName].split(delimiter)
-					row[columnName] = set(s) if 1 < len(s) else objectFieldName
-			except:
+					row[columnName] = set(s) if 1 < len(s) else s[0]
+			except (KeyError, TypeError, ValueError, AttributeError):
 				row[columnName] = object[fieldName]
 
 	from contextlib import contextmanager
@@ -430,7 +430,7 @@ def extractData(args):
 							row = {'title': jld('title', True)}
 							if (not row['title']) or (titleExclusion.match(str.casefold(row['title']))):
 								continue
-						except:
+						except (KeyError, TypeError, ValueError):
 							# No title or {'title': null}
 							continue
 
@@ -440,7 +440,7 @@ def extractData(args):
 							try:
 								sortingTitle = jld('sortingTitle')
 								row['sortingTitle'] = sortingTitle['title']
-							except:
+							except (KeyError, TypeError, ValueError):
 								row['sortingTitle'] = ''
 
 						# OriginalTitle
@@ -448,7 +448,7 @@ def extractData(args):
 							try:
 								originalTitle = jld('originalTitle')
 								row['originalTitle'] = originalTitle['title']
-							except:
+							except (KeyError, TypeError, ValueError):
 								row['originalTitle'] = ''
 
 
