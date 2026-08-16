@@ -155,7 +155,7 @@ def extractData(args):
 					row[columnName] = jld(fieldName, True)
 				elif Type.LIST is fieldType:
 					s = object[fieldName].split(delimiter)
-					row[columnName] = set(s) if 1 < len(s) else objectFieldName
+					row[columnName] = set(s) if 1 < len(s) else s[0]
 			except:
 				row[columnName] = object[fieldName]
 
