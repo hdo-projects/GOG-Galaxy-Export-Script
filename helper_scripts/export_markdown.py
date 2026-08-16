@@ -25,10 +25,15 @@ import unicodedata
 CORE_COLUMNS = ['Titre', 'Plateforme', 'Statut', 'Verdict', 'Date']
 EXTRA_COLUMNS = ['Genres', 'Developpeurs', 'Score critique', 'Ma note', 'Temps de jeu (h)', 'Tags']
 
-# Homebrew emulators/tools sideloaded onto Xbox under a "game" title (often with
+# Homebrew emulators/loaders sideloaded onto Xbox under a "game" title (often with
 # zero-width/invisible characters and random suffixes to dodge the store scanner).
 # They are not games and are dropped from the export entirely.
-KNOWN_EMULATOR_TOOLS = ['RetroArch', 'Dolphin', 'PPSSPP', 'Xenia', 'DevilutionX']
+KNOWN_EMULATOR_TOOLS = ['RetroArch', 'Dolphin', 'PPSSPP', 'Xenia', 'DevilutionX', 'XBSX2', 'AM2R']
+
+# Some sideloads carry no recognisable name at all: just the raw package/store
+# identifier (e.g. "1N5PYGWNH8T8N949") - all-caps alphanumeric, no whitespace,
+# only ever seen on Xbox Live. Real game titles don't look like this.
+SIDELOAD_ID_PATTERN = re.compile(r'^(?=[A-Z0-9]{10,}$)(?=.*[0-9])(?=.*[A-Z]).+$')
 
 # GOG lists a game claimed both directly and via an Amazon Prime Gaming / Luna
 # promo as two separate releases with a "- Amazon Prime"/"- Amazon Luna" suffix.
@@ -45,8 +50,11 @@ Colonnes apres Date : contexte supplementaire tire du CSV, pas des colonnes
 attendues par le format de suivi.
 Nettoyage applique avant export : les entrees "- Amazon Prime"/"- Amazon Luna"
 (meme jeu reclame deux fois) sont fusionnees avec le jeu de base, et les
-emulateurs/outils sideloades sur Xbox (RetroArch, Dolphin, PPSSPP, Xenia,
-DevilutionX) sont exclus car ce ne sont pas des jeux.
+emulateurs/loaders sideloades sur Xbox (RetroArch, Dolphin, PPSSPP, Xenia,
+DevilutionX, XBSX2, AM2R - avec ou sans caracteres Unicode invisibles/suffixes
+parasites) sont exclus, ainsi que les entrees Xbox Live sans nom reconnaissable
+(identifiant brut du paquet, ex. type "1N5PYGWNH8T8N949"), car ce ne sont pas
+des jeux.
 -->"""
 
 
@@ -59,8 +67,10 @@ def strip_invisible_chars(text):
 def is_emulator_tool(title, platform_list):
     if 'xbox live' not in (platform_list or '').lower():
         return False
-    cleaned = strip_invisible_chars(title or '').strip().lower()
-    return any(cleaned.startswith(name.lower()) for name in KNOWN_EMULATOR_TOOLS)
+    cleaned = strip_invisible_chars(title or '').strip()
+    if any(cleaned.lower().startswith(name.lower()) for name in KNOWN_EMULATOR_TOOLS):
+        return True
+    return bool(SIDELOAD_ID_PATTERN.match(cleaned))
 
 
 def strip_duplicate_claim_suffix(title):
