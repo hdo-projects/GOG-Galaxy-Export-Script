@@ -79,7 +79,7 @@ def extractData(args):
 		try:
 			with open('settings.json', 'r', encoding='utf-8') as f:
 				o = json.load(f)
-		except:
+		except (FileNotFoundError, json.JSONDecodeError):
 			o = {}
 		
 		# Initialise defaults
@@ -91,7 +91,7 @@ def extractData(args):
 
 	def id(name):
 		""" Returns the numeric ID for the specified type """
-		return cursor.execute('SELECT id FROM GamePieceTypes WHERE type="{}"'.format(name)).fetchone()[0]
+		return cursor.execute('SELECT id FROM GamePieceTypes WHERE type=?', (name,)).fetchone()[0]
 
 	def clean(s):
 		""" Cleans strings for CSV consumption """
@@ -156,7 +156,7 @@ def extractData(args):
 				elif Type.LIST is fieldType:
 					s = object[fieldName].split(delimiter)
 					row[columnName] = set(s) if 1 < len(s) else s[0]
-			except:
+			except (KeyError, TypeError, ValueError, AttributeError):
 				row[columnName] = object[fieldName]
 
 	from contextlib import contextmanager
@@ -403,6 +403,13 @@ def extractData(args):
 		for game in additionalDLCs.keys():
 			dlcs.update(additionalDLCs[game])
 
+		# Index results by release key so DLC lookups below are O(1) instead of scanning
+		# the full result set for every DLC of every game
+		resultByReleaseKey = {}
+		for ids, result in results:
+			for releaseKey in ids:
+				resultByReleaseKey[releaseKey] = result
+
 		# There are spurious random dlcNUMBERa entries in the library, plus a few DLCs which appear
 		# multiple times in different ways and are not attached to a game
 		titleExclusion = re.compile(r'^(?:'
@@ -430,7 +437,7 @@ def extractData(args):
 							row = {'title': jld('title', True)}
 							if (not row['title']) or (titleExclusion.match(str.casefold(row['title']))):
 								continue
-						except:
+						except (KeyError, TypeError, ValueError):
 							# No title or {'title': null}
 							continue
 
@@ -440,7 +447,7 @@ def extractData(args):
 							try:
 								sortingTitle = jld('sortingTitle')
 								row['sortingTitle'] = sortingTitle['title']
-							except:
+							except (KeyError, TypeError, ValueError):
 								row['sortingTitle'] = ''
 
 						# OriginalTitle
@@ -448,7 +455,7 @@ def extractData(args):
 							try:
 								originalTitle = jld('originalTitle')
 								row['originalTitle'] = originalTitle['title']
-							except:
+							except (KeyError, TypeError, ValueError):
 								row['originalTitle'] = ''
 
 
@@ -507,13 +514,9 @@ def extractData(args):
 										dlcList.extend(options["TreatReleaseAsDLC"][key])
 								
 							for dlc in dlcList:
-								try:
-									# Check the availability of the DLC in the games list (uncertain)
-									d = next(x[1] for x in results if dlc in x[0])
-									if d:
-										row['dlcs'].add(jld('title', True, d))
-								except StopIteration:
-									pass
+								d = resultByReleaseKey.get(dlc)
+								if d:
+									row['dlcs'].add(jld('title', True, d))
 
 						# Tags
 						if args.tags:
