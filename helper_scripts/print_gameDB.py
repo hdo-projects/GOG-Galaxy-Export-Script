@@ -3,6 +3,12 @@
 
 import csv
 import os
+import sys
+
+# Force UTF-8 stdout: on Windows, stdout defaults to the system codepage
+# (e.g. cp1252), which cannot encode many real game titles (accents, CJK...)
+# and crashes print() with UnicodeEncodeError
+sys.stdout.reconfigure(encoding='utf-8')
 
 # Resolve paths relative to this script so it works regardless of the
 # directory it's run from, not just when run from inside helper_scripts/
