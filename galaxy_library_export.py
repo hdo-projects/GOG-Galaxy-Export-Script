@@ -91,7 +91,7 @@ def extractData(args):
 
 	def id(name):
 		""" Returns the numeric ID for the specified type """
-		return cursor.execute('SELECT id FROM GamePieceTypes WHERE type="{}"'.format(name)).fetchone()[0]
+		return cursor.execute('SELECT id FROM GamePieceTypes WHERE type=?', (name,)).fetchone()[0]
 
 	def clean(s):
 		""" Cleans strings for CSV consumption """
