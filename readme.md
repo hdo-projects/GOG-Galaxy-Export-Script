@@ -20,7 +20,7 @@ The [upstream repository](https://github.com/AB1908/GOG-Galaxy-Export-Script) ha
 3. Open the command prompt (`Win+R`, write `cmd` and press Enter) and enter the directory you chose with `cd /d DIRECTORY`, replacing `DIRECTORY` with the directory in which `galaxy_library_export.py` resides
 4. Install python's requirements:
    ```
-   python -m pip install csv natsort
+   python -m pip install natsort
    ```
 5. Export the CSV with:
    ```
@@ -79,8 +79,7 @@ python helper_scripts/export_markdown.py [-i gameDB.csv] [-o gameDB.md] [-d DELI
 ## Dependencies
 
 - Python 3
-  - csv
-  - natsort
+  - [natsort](https://pypi.org/project/natsort/)
 
 ## Platform Support
 
