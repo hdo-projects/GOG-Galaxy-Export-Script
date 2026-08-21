@@ -11,6 +11,7 @@ The [upstream repository](https://github.com/AB1908/GOG-Galaxy-Export-Script) ha
 - Indexed DLC lookups by release key instead of scanning the full result set for every game (avoids an O(n·m) slowdown on large libraries)
 - Switched the `id()` query to a parameterized query instead of string formatting
 - Fixed `helper_scripts/print_gameDB.py`'s hardcoded relative path, CSV delimiter, and a `UnicodeEncodeError` crash on Windows
+- Added `helper_scripts/export_markdown.py`, a Markdown backlog-tracking export (see [Helper scripts](#helper-scripts))
 
 ## TL;DR / brief how to use
 
@@ -66,6 +67,14 @@ python helper_scripts/print_gameDB.py
 ```
 
 It resolves `gameDB.csv` relative to its own location, so it can be run from any working directory.
+
+`helper_scripts/export_markdown.py` turns `gameDB.csv` into a Markdown backlog-tracking table (`Titre | Plateforme | Statut | Verdict | Date`), ready to paste into a note-taking tool:
+
+```
+python helper_scripts/export_markdown.py [-i gameDB.csv] [-o gameDB.md] [-d DELIM]
+```
+
+`Statut` is set to "Backlog" (never launched) or "Possede" (playtime > 0) based on what GOG Galaxy actually tracks; `Verdict` and `Date` are always left blank for manual entry. Known sideloaded emulators/loaders (RetroArch, Dolphin, PPSSPP, Xenia, DevilutionX, XBSX2, AM2R, and nameless package IDs) are excluded, and duplicate Amazon Prime/Luna claims of the same game are merged into a single row.
 
 ## Dependencies
 
