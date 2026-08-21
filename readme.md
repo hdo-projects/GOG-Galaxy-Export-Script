@@ -2,6 +2,16 @@
 
 This script helps a user export their GOG Galaxy 2.0 Library.
 
+## About this fork
+
+The [upstream repository](https://github.com/AB1908/GOG-Galaxy-Export-Script) has had no activity since December 2022. This fork carries a few reliability fixes that were submitted upstream but never reviewed:
+
+- Fixed a `NameError` in `includeField()` when exporting single-value list fields
+- Narrowed a bare `except:` in `includeField()` to the exceptions it actually needs to handle (`KeyError`, `TypeError`, `ValueError`, `AttributeError`)
+- Indexed DLC lookups by release key instead of scanning the full result set for every game (avoids an O(n·m) slowdown on large libraries)
+- Switched the `id()` query to a parameterized query instead of string formatting
+- Fixed `helper_scripts/print_gameDB.py`'s hardcoded relative path, CSV delimiter, and a `UnicodeEncodeError` crash on Windows
+
 ## TL;DR / brief how to use
 
 1. Install Python 3, through Windows Store or manually if you prefer
@@ -46,6 +56,16 @@ The settings.json allows to handle dlcs as game and export them accordingly or t
   - *TreatReleaseAsDLC* is evaluated after *TreatDLCAsGame*. If a release-key is present in *TreatDLCAsGame* and also mapped to another release-key with *TreatReleaseAsDLC* than this release-key is handled as dlc.
   - This will not override the original link between a dlc and it's parent game. If a dlc is mapped to another game it will be present in the dlc list of this game and the original game.
 
+
+## Helper scripts
+
+`helper_scripts/print_gameDB.py` turns the exported `gameDB.csv` (produced at the repository root by `galaxy_library_export.py`) into a numbered plain-text list, written to `helper_scripts/my_games.txt`. Run it after exporting:
+
+```
+python helper_scripts/print_gameDB.py
+```
+
+It resolves `gameDB.csv` relative to its own location, so it can be run from any working directory.
 
 ## Dependencies
 
